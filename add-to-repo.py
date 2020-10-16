@@ -13,7 +13,9 @@ def get_user_id(username):
     return data['id']
 
 def addUserToRepo(my_id, my_pass, userid, repo):
-    os.popen("curl -i -u '{}:{}' -X PUT -d '' 'https://api.github.com/repos/{}/{}/collaborators/{}'".format(MY_USERNAME, my_pass, my_id, repo, userid)).read()
+    #os.popen("curl -i -u '{}:{}' -X PUT -d '' 'https://api.github.com/repos/{}/{}/collaborators/{}'".format(MY_USERNAME, my_pass, my_id, repo, userid)).read()
+    r = requests.put("{}/repos/{}/{}/collaborators/{}".format(GH_BASE_URL, my_id, repo, userid))
+    print(r)
 
 if __name__ == "__main__":
     my_id = get_user_id(MY_USERNAME)
