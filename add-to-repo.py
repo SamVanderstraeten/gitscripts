@@ -1,28 +1,41 @@
 import config
 import os, sys
 import requests, json
+from getpass import getpass
 
-from config import REPOS, USERS
+from config import REPOS, USERS, GH_BASE_URL, MY_USERNAME, ORG_NAME
 
-GH_BASE_URL = "https://api.github.com"
-MY_USERNAME = "SamVanderstraeten"
+'''
+    Small script to add lots of users to lots of repos automatically. 
+    Saves some time! 
+    Just edit the config.py file to your needs.
 
-def get_user_id(username):
-    r = requests.get("{}/users/{}".format(GH_BASE_URL, username))
-    data = json.loads(r.text)
-    return data['id']
+    PASS GitHub password as argument ()
+'''
 
-def addUserToRepo(my_id, my_pass, userid, repo):
-    #os.popen("curl -i -u '{}:{}' -X PUT -d '' 'https://api.github.com/repos/{}/{}/collaborators/{}'".format(MY_USERNAME, my_pass, my_id, repo, userid)).read()
-    r = requests.put("{}/repos/{}/{}/collaborators/{}".format(GH_BASE_URL, my_id, repo, userid))
-    print(r)
+# def get_user_id(username):
+#     r = requests.get("{}/users/{}".format(GH_BASE_URL, username))
+#     data = json.loads(r.text)
+#     print(username + "::" + str(data['id']))
+#     return data['id']
+
+def addUserToRepo(my_username, my_pass, username, repo):
+    cmd = "curl -s -u '{}:{}' -H 'Accept: application/vnd.github.v3+json' -X PUT -d '' '{}/repos/{}/{}/collaborators/{}'".format(my_username, my_pass, GH_BASE_URL, ORG_NAME, repo, username)
+    r = os.popen(cmd).read()
+
+    msg = json.loads(r)["message"]
+    if msg == "Bad credentials":
+        print("!!!!! Bad credentials")
+        sys.exit()
+    elif msg == "Not found":
+        print("!!!!! User {} could not be added".format(username))
+    else:
+        print("..... OK")
 
 if __name__ == "__main__":
-    my_id = get_user_id(MY_USERNAME)
-    my_pass = sys.argv[0]
+    my_pass = getpass()
     for user in USERS:
-        userid = get_user_id(user)
         for repo in REPOS:
             print("Adding " + user + " to " + repo)
-            addUserToRepo(my_id, my_pass, userid, repo)
+            addUserToRepo(MY_USERNAME, my_pass, user, repo)
         print("-------------")
